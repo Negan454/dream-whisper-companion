@@ -345,7 +345,7 @@ const Index = () => {
     }
   };
   
-  const handleMemorySelect = (memory: any) => {
+  const handleMemorySelect = (memory: Memory) => {
     setActiveTab("chat");
     
     // Increment session progress when reviewing memories

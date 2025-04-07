@@ -4,11 +4,13 @@ import { cn } from '@/lib/utils';
 import { Book, Heart, Star, Sparkles } from 'lucide-react';
 import { Message } from './ChatInterface';
 
+type Emotion = 'joy' | 'wonder' | 'reflection' | 'curiosity';
+
 interface Memory {
   id: string;
   title: string;
   description: string;
-  emotion: 'joy' | 'wonder' | 'reflection' | 'curiosity';
+  emotion: Emotion;
   relatedMessages: string[]; // IDs of related messages
   timestamp: Date;
 }
@@ -21,7 +23,7 @@ interface MemoryJournalProps {
 }
 
 const MemoryJournal = ({ memories, messages, onMemorySelect, className }: MemoryJournalProps) => {
-  const getEmotionIcon = (emotion: string) => {
+  const getEmotionIcon = (emotion: Emotion) => {
     switch (emotion) {
       case 'joy':
         return <Heart className="h-5 w-5 text-pink-500" />;
@@ -36,7 +38,7 @@ const MemoryJournal = ({ memories, messages, onMemorySelect, className }: Memory
     }
   };
 
-  const getEmotionBadge = (emotion: string) => {
+  const getEmotionBadge = (emotion: Emotion) => {
     switch (emotion) {
       case 'joy':
         return <span className="badge badge-growth">Joy</span>;
