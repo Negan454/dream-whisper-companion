@@ -6,12 +6,18 @@ interface CompanionMessageProps {
   message: string;
   className?: string;
   withAnimation?: boolean;
+  isTherapist?: boolean;
 }
 
-const CompanionMessage = ({ message, className, withAnimation = true }: CompanionMessageProps) => {
+const CompanionMessage = ({ 
+  message, 
+  className, 
+  withAnimation = true, 
+  isTherapist = true 
+}: CompanionMessageProps) => {
   return (
     <div className={cn(
-      "companion-message", 
+      isTherapist ? "therapist-message" : "companion-message", 
       withAnimation && "animate-fade-in",
       className
     )}>

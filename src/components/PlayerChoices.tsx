@@ -13,20 +13,29 @@ interface PlayerChoicesProps {
   choices: Choice[];
   onSelectChoice: (choiceId: string) => void;
   className?: string;
+  isTherapeutic?: boolean;
 }
 
-const PlayerChoices = ({ choices, onSelectChoice, className }: PlayerChoicesProps) => {
+const PlayerChoices = ({ 
+  choices, 
+  onSelectChoice, 
+  className,
+  isTherapeutic = true
+}: PlayerChoicesProps) => {
   return (
     <div className={cn("flex flex-col space-y-2 w-full max-w-md mx-auto animate-fade-in", className)}>
       {choices.map((choice) => (
         <button
           key={choice.id}
-          className="choice-button group flex items-center justify-between"
+          className={isTherapeutic ? "reflection-button group flex items-center justify-between" : "choice-button group flex items-center justify-between"}
           onClick={() => onSelectChoice(choice.id)}
         >
           <span>{choice.text}</span>
           {choice.voiceEnabled && (
-            <Mic className="ml-2 h-4 w-4 text-whisper-400 opacity-70 group-hover:opacity-100 transition-opacity" />
+            <Mic className={cn(
+              "ml-2 h-4 w-4 opacity-70 group-hover:opacity-100 transition-opacity",
+              isTherapeutic ? "text-teal-400" : "text-whisper-400"
+            )} />
           )}
         </button>
       ))}

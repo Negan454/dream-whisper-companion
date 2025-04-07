@@ -77,6 +77,18 @@ export default {
 					800: '#3730a3',
 					900: '#312e81',
 				},
+				teal: {
+					50: '#f0fdfa',
+					100: '#ccfbf1',
+					200: '#99f6e4',
+					300: '#5eead4',
+					400: '#2dd4bf',
+					500: '#14b8a6',
+					600: '#0d9488',
+					700: '#0f766e',
+					800: '#115e59',
+					900: '#134e4a',
+				},
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',
 					foreground: 'hsl(var(--sidebar-foreground))',
@@ -121,6 +133,11 @@ export default {
 				'dream-transition': {
 					'0%': { opacity: '0', filter: 'blur(12px)' },
 					'100%': { opacity: '1', filter: 'blur(0)' }
+				},
+				'achievement-unlock': {
+					'0%': { transform: 'scale(0.8)', opacity: '0' },
+					'50%': { transform: 'scale(1.1)' },
+					'100%': { transform: 'scale(1)', opacity: '1' }
 				}
 			},
 			animation: {
@@ -130,11 +147,13 @@ export default {
 				'pulse-soft': 'pulse-soft 4s ease-in-out infinite',
 				'fade-in': 'fade-in 0.6s ease-out',
 				'fade-out': 'fade-out 0.6s ease-out',
-				'dream-transition': 'dream-transition 1.5s ease-out'
+				'dream-transition': 'dream-transition 1.5s ease-out',
+				'achievement-unlock': 'achievement-unlock 0.8s ease-out'
 			},
 			backgroundImage: {
 				'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
 				'dream-bg': 'linear-gradient(to bottom right, #e9d5ff, #a5b4fc, #ddd6fe)',
+				'therapeutic-bg': 'linear-gradient(to bottom right, #ccfbf1, #e0e7ff, #ede9fe)',
 			},
 		}
 	},

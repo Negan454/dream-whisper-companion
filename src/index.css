@@ -1,5 +1,5 @@
 
-@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&family=Comfortaa:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&family=Comfortaa:wght@300;400;500;600;700&family=Nunito:wght@300;400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -16,7 +16,7 @@
     --popover: 260 50% 98%;
     --popover-foreground: 260 20% 25%;
 
-    --primary: 260 85% 65%;
+    --primary: 258 90% 66%;
     --primary-foreground: 260 20% 98%;
 
     --secondary: 217 100% 92%;
@@ -25,15 +25,15 @@
     --muted: 260 30% 92%;
     --muted-foreground: 260 20% 50%;
 
-    --accent: 243 100% 90%;
-    --accent-foreground: 243 50% 30%;
+    --accent: 170 80% 90%;
+    --accent-foreground: 170 50% 30%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 260 20% 98%;
 
     --border: 260 30% 90%;
     --input: 260 30% 90%;
-    --ring: 260 85% 65%;
+    --ring: 258 90% 66%;
 
     --radius: 1.5rem;
 
@@ -49,7 +49,7 @@
 
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: 'Quicksand', sans-serif;
+    font-family: 'Nunito', sans-serif;
     background-image: radial-gradient(circle at 80% 20%, rgba(165, 180, 252, 0.2), transparent), 
                       radial-gradient(circle at 20% 80%, rgba(196, 181, 253, 0.2), transparent);
     background-attachment: fixed;
@@ -67,8 +67,20 @@
     box-shadow: 0 8px 32px rgba(31, 38, 135, 0.1);
   }
 
+  .therapeutic-card {
+    @apply relative overflow-hidden rounded-2xl;
+    background: linear-gradient(135deg, rgba(220, 242, 247, 0.9), rgba(227, 222, 255, 0.7));
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 10px 25px rgba(31, 38, 135, 0.08);
+  }
+
   .companion-message {
     @apply bg-whisper-100 text-whisper-900 border-l-4 border-whisper-400 rounded-tl-lg rounded-br-2xl rounded-tr-2xl pl-4 pr-5 py-3 mb-4 max-w-[85%] shadow-sm;
+  }
+
+  .therapist-message {
+    @apply bg-teal-50 text-teal-900 border-l-4 border-teal-300 rounded-tl-lg rounded-br-2xl rounded-tr-2xl pl-4 pr-5 py-3 mb-4 max-w-[85%] shadow-sm;
   }
 
   .player-message {
@@ -83,10 +95,24 @@
     @apply shadow-lg transform -translate-y-1 border-whisper-300;
   }
 
+  .insight-card {
+    @apply bg-gradient-to-br from-teal-50 to-blue-50 border border-teal-100 rounded-2xl p-5 shadow-md transition-all duration-300;
+  }
+  
+  .insight-card:hover {
+    @apply shadow-lg transform -translate-y-1 border-teal-200;
+  }
+
   .dreamy-button {
     @apply px-5 py-2.5 rounded-full bg-gradient-to-r from-whisper-400 to-dream-400 text-white font-medium
     shadow-md transition-all duration-300 ease-in-out hover:shadow-lg hover:from-whisper-500 hover:to-dream-500
     focus:outline-none focus:ring-2 focus:ring-whisper-300 active:shadow-sm;
+  }
+
+  .therapeutic-button {
+    @apply px-5 py-2.5 rounded-full bg-gradient-to-r from-teal-400 to-blue-400 text-white font-medium
+    shadow-md transition-all duration-300 ease-in-out hover:shadow-lg hover:from-teal-500 hover:to-blue-500
+    focus:outline-none focus:ring-2 focus:ring-teal-300 active:shadow-sm;
   }
 
   .choice-button {
@@ -95,8 +121,34 @@
     hover:border-whisper-300 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-whisper-200;
   }
 
+  .reflection-button {
+    @apply px-4 py-2 rounded-xl text-sm md:text-base bg-white/80 backdrop-blur-sm text-teal-700 font-medium
+    border border-teal-200 shadow-sm transition-all duration-200 ease-in-out hover:bg-teal-50
+    hover:border-teal-300 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-teal-200;
+  }
+
   .dream-transition {
     animation: dream-transition 2s ease-out forwards;
+  }
+
+  .badge {
+    @apply inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+  }
+
+  .badge-growth {
+    @apply bg-teal-100 text-teal-800;
+  }
+
+  .badge-insight {
+    @apply bg-blue-100 text-blue-800;
+  }
+
+  .badge-courage {
+    @apply bg-amber-100 text-amber-800;
+  }
+
+  .badge-reflection {
+    @apply bg-purple-100 text-purple-800;
   }
 
   @keyframes dream-transition {
@@ -143,7 +195,7 @@
     animation-name: float-particle;
     animation-timing-function: ease-in-out;
     animation-iteration-count: infinite;
-    background: linear-gradient(to right, rgba(196, 181, 253, 0.8), rgba(165, 180, 252, 0.8));
+    background: linear-gradient(to right, rgba(153, 246, 228, 0.7), rgba(196, 181, 253, 0.7));
   }
 
   @keyframes float-particle {
@@ -158,6 +210,40 @@
     }
     75% {
       transform: translateY(-30px) translateX(15px);
+    }
+  }
+
+  /* Tooltip animation */
+  .tooltip-enter {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  .tooltip-enter-active {
+    opacity: 1;
+    transform: scale(1);
+    transition: opacity 200ms, transform 200ms;
+  }
+  .tooltip-exit {
+    opacity: 1;
+  }
+  .tooltip-exit-active {
+    opacity: 0;
+    transition: opacity 100ms;
+  }
+
+  /* Achievement animation */
+  .achievement-popup {
+    animation: achievement-slide-in 0.5s ease-out forwards;
+  }
+
+  @keyframes achievement-slide-in {
+    0% {
+      transform: translateY(50px);
+      opacity: 0;
+    }
+    100% {
+      transform: translateY(0);
+      opacity: 1;
     }
   }
 }
