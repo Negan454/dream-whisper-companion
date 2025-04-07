@@ -9,6 +9,19 @@ import DreamTransition from '@/components/DreamTransition';
 import GameWorld from '@/components/GameWorld';
 import Particles from '@/components/Particles';
 
+// Define emotion type to handle all possible emotions
+type Emotion = 'wonder' | 'reflection' | 'curiosity' | 'joy';
+
+// Memory interface to properly type our state
+interface Memory {
+  id: string;
+  title: string;
+  description: string;
+  emotion: Emotion;
+  relatedMessages: string[];
+  timestamp: Date;
+}
+
 // Mock data - in a real app, this would come from your Gemini API
 const initialMessages: Message[] = [
   {
@@ -25,12 +38,12 @@ const initialChoices = [
   { id: 'name3', text: 'My name is Explorer', voiceEnabled: true },
 ];
 
-const initialMemories = [
+const initialMemories: Memory[] = [
   {
     id: 'm1',
     title: 'First Meeting',
     description: 'The moment we first connected in the dream world.',
-    emotion: 'wonder' as const,
+    emotion: 'wonder',
     relatedMessages: ['1'],
     timestamp: new Date(),
   },
@@ -63,7 +76,7 @@ const interactionPoints = [
 const Index = () => {
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [choices, setChoices] = useState(initialChoices);
-  const [memories, setMemories] = useState(initialMemories);
+  const [memories, setMemories] = useState<Memory[]>(initialMemories);
   const [playerName, setPlayerName] = useState<string | null>(null);
   const [showTransition, setShowTransition] = useState(false);
   const [transitionMessage, setTransitionMessage] = useState<string | null>(null);
@@ -154,11 +167,11 @@ const Index = () => {
         ]);
         
         // Add this as a memory
-        const newMemory = {
+        const newMemory: Memory = {
           id: `m${Date.now()}`,
           title: 'Emotional Exchange',
           description: 'Our first conversation about feelings and perception.',
-          emotion: 'reflection' as const,
+          emotion: 'reflection',
           relatedMessages: [response.id],
           timestamp: new Date(),
         };
@@ -228,11 +241,11 @@ const Index = () => {
       setMessages(prev => [...prev, response]);
       
       // Add new memory
-      const newMemory = {
+      const newMemory: Memory = {
         id: `m${Date.now()}`,
         title: `Visited ${point.label}`,
         description: `Explored the mysterious ${point.label} and its unique properties.`,
-        emotion: 'curiosity' as const,
+        emotion: 'curiosity',
         relatedMessages: [response.id],
         timestamp: new Date(),
       };
