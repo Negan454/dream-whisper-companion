@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -32,20 +33,14 @@ interface Achievement {
   unlocked: boolean;
 }
 
-// Mock initial messages with therapeutic tone
+// Initial welcome message
 const initialMessages: Message[] = [
   {
     id: '1',
-    text: "Welcome to your reflection space. I'm here to help you explore your thoughts and feelings in a supportive environment. What would you like me to call you?",
+    text: "Welcome to MindfulReflect, a space for emotional growth and self-discovery. How are you feeling today?",
     sender: 'companion',
     timestamp: new Date(),
   },
-];
-
-const initialChoices = [
-  { id: 'name1', text: 'You can call me Wanderer', voiceEnabled: true },
-  { id: 'name2', text: 'I prefer to be known as Seeker', voiceEnabled: true },
-  { id: 'name3', text: 'My name is Explorer', voiceEnabled: true },
 ];
 
 const initialMemories: Memory[] = [
@@ -114,12 +109,45 @@ const interactionPoints = [
   },
 ];
 
+// Function to analyze text sentiment and determine emotion
+const analyzeSentiment = (text: string): Emotion => {
+  const text_lower = text.toLowerCase();
+  
+  // Simple keyword-based analysis - in a real app, you'd use a more sophisticated NLP approach
+  if (text_lower.includes('happy') || text_lower.includes('glad') || text_lower.includes('joy') || 
+      text_lower.includes('excited') || text_lower.includes('good')) {
+    return 'joy';
+  } else if (text_lower.includes('wonder') || text_lower.includes('curious') || 
+             text_lower.includes('amazed') || text_lower.includes('fascinating')) {
+    return 'wonder';
+  } else if (text_lower.includes('think') || text_lower.includes('reflect') || 
+             text_lower.includes('consider') || text_lower.includes('ponder')) {
+    return 'reflection';
+  } else {
+    return 'curiosity'; // Default
+  }
+};
+
+// Function to generate AI response - this would connect to a backend API in a real app
+const generateResponse = (message: string): string => {
+  // Simple response logic - in a real app, this would call an API
+  if (message.toLowerCase().includes('how are you')) {
+    return "I'm here to support your reflection journey. How are you feeling today?";
+  } else if (message.toLowerCase().includes('feeling')) {
+    return "Emotions provide valuable insight into our inner landscape. What do you think might be influencing how you feel right now?";
+  } else if (message.toLowerCase().includes('stress') || message.toLowerCase().includes('anxious')) {
+    return "It sounds like you're experiencing some tension. Taking a moment to breathe deeply can help create a little space around difficult emotions. Would you like to explore what might be contributing to these feelings?";
+  } else if (message.toLowerCase().includes('happy') || message.toLowerCase().includes('joy')) {
+    return "I'm glad to hear you're experiencing positive emotions. Savoring these moments can help strengthen your emotional resilience. What aspects of this experience would you like to carry forward?";
+  } else {
+    return "Thank you for sharing. Continued reflection can reveal patterns and insights about your emotional experience. Is there a specific aspect you'd like to explore further?";
+  }
+};
+
 const Index = () => {
   const [messages, setMessages] = useState<Message[]>(initialMessages);
-  const [choices, setChoices] = useState(initialChoices);
   const [memories, setMemories] = useState<Memory[]>(initialMemories);
   const [achievements, setAchievements] = useState<Achievement[]>(initialAchievements);
-  const [playerName, setPlayerName] = useState<string | null>(null);
   const [showTransition, setShowTransition] = useState(false);
   const [transitionMessage, setTransitionMessage] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("chat");
@@ -144,212 +172,70 @@ const Index = () => {
     }
   };
   
-  const handleChoiceSelect = (choiceId: string) => {
-    // Find the selected choice
-    const selectedChoice = choices.find(choice => choice.id === choiceId);
-    if (!selectedChoice) return;
-    
-    // Add player message
+  // Handle user message submission
+  const handleSendMessage = (messageText: string) => {
+    // Create new player message
     const playerMessage: Message = {
       id: `p${Date.now()}`,
-      text: selectedChoice.text,
+      text: messageText,
       sender: 'player',
       timestamp: new Date(),
     };
     
+    // Add player message to chat
     setMessages(prev => [...prev, playerMessage]);
     
     // Increment session progress with each interaction
     setSessionProgress(prev => Math.min(prev + 5, 100));
     
-    // Process the choice
-    if (choiceId.startsWith('name')) {
-      const name = selectedChoice.text.split(' ').pop();
-      setPlayerName(name);
+    // Analyze sentiment and determine emotion
+    const emotion = analyzeSentiment(messageText);
+    
+    // Add memory for significant messages
+    if (messageText.length > 15) {
+      const newMemory: Memory = {
+        id: `m${Date.now()}`,
+        title: `Reflection on ${new Date().toLocaleDateString()}`,
+        description: messageText.length > 50 ? `${messageText.substring(0, 50)}...` : messageText,
+        emotion: emotion,
+        relatedMessages: [playerMessage.id],
+        timestamp: new Date(),
+      };
       
-      // Simulate AI response after a short delay
-      setTimeout(() => {
-        const response: Message = {
-          id: `c${Date.now()}`,
-          text: `${name}, thank you for sharing. It's wonderful to meet you. This space is designed to help you reflect on your thoughts and feelings in a supportive environment. How are you feeling today?`,
-          sender: 'companion',
-          timestamp: new Date(),
-        };
-        
-        setMessages(prev => [...prev, response]);
-        
-        // Update choices after name is selected
-        setChoices([
-          { id: 'feeling_good', text: 'I\'m feeling pretty good today', voiceEnabled: true },
-          { id: 'feeling_mixed', text: 'I have mixed emotions right now', voiceEnabled: true },
-          { id: 'feeling_down', text: 'I\'m not feeling my best', voiceEnabled: true },
-        ]);
-        
-        // Unlock first achievement after introducing yourself
-        if (!achievements[0].unlocked) {
-          unlockAchievement('a1');
-        }
-      }, 1000);
-    } else if (choiceId.startsWith('feeling')) {
-      // Simulate AI response after a short delay
-      setTimeout(() => {
-        let responseText = "";
-        
-        if (choiceId === 'feeling_good') {
-          responseText = "I'm glad to hear you're feeling good today. Recognizing and acknowledging positive emotions is an important part of emotional wellness. What do you think is contributing to your positive mood?";
-        } else if (choiceId === 'feeling_mixed') {
-          responseText = "Having mixed emotions is completely normal. Our feelings are often complex and multifaceted. Would you like to explore these different emotions a bit more deeply?";
-        } else {
-          responseText = "I'm sorry to hear you're not feeling your best. Remember that all emotions, even difficult ones, provide valuable information and are an important part of our experience. Would you like to reflect on what might be influencing how you feel?";
-        }
-        
-        const response: Message = {
-          id: `c${Date.now()}`,
-          text: responseText,
-          sender: 'companion',
-          timestamp: new Date(),
-        };
-        
-        setMessages(prev => [...prev, response]);
-        
-        // Update choices based on feeling response
-        if (choiceId === 'feeling_good') {
-          setChoices([
-            { id: 'explore_positive', text: 'I\'d like to explore what\'s going well', voiceEnabled: true },
-            { id: 'build_on_good', text: 'How can I build on these positive feelings?', voiceEnabled: true },
-            { id: 'remember_good', text: 'I want to remember this feeling for harder times', voiceEnabled: true },
-          ]);
-        } else if (choiceId === 'feeling_mixed') {
-          setChoices([
-            { id: 'identify_emotions', text: 'Help me identify these different emotions', voiceEnabled: true },
-            { id: 'balance_feelings', text: 'How can I find balance with mixed feelings?', voiceEnabled: true },
-            { id: 'visualize_emotions', text: 'Let\'s visualize my emotional landscape', voiceEnabled: true },
-          ]);
-        } else {
-          setChoices([
-            { id: 'gentle_exploration', text: 'I\'d like to gently explore what\'s happening', voiceEnabled: true },
-            { id: 'comfort_strategies', text: 'What are some self-comfort strategies?', voiceEnabled: true },
-            { id: 'find_perspective', text: 'Help me find perspective on my feelings', voiceEnabled: true },
-          ]);
-        }
-        
-        // Add memory for this emotional reflection
-        let emotionType: Emotion = 'reflection'; // Default value
-        
-        if (choiceId === 'feeling_good') {
-          emotionType = 'joy';
-        } else if (choiceId === 'feeling_mixed') {
-          emotionType = 'reflection';
-        } else {
-          emotionType = 'wonder';
-        }
-        
-        const newMemory: Memory = {
-          id: `m${Date.now()}`,
-          title: 'Emotional Check-in',
-          description: `Reflected on your emotional state and identified key feelings.`,
-          emotion: emotionType,
-          relatedMessages: [response.id],
-          timestamp: new Date(),
-        };
-        
-        setMemories(prev => [...prev, newMemory]);
-        
-        // Add insight count
-        setInsightsCount(prev => prev + 1);
-      }, 1000);
-    } else if (choiceId.startsWith('explore') || choiceId.startsWith('build') || choiceId.startsWith('remember')) {
-      handleDreamTransition("Exploring positive emotions...");
+      setMemories(prev => [...prev, newMemory]);
       
-      // Unlock the emotional explorer achievement if not already unlocked
-      if (!achievements[1].unlocked) {
-        setTimeout(() => {
-          unlockAchievement('a2');
-        }, 2000);
+      // Increment insights count
+      setInsightsCount(prev => prev + 1);
+      
+      // Check for achievements
+      if (insightsCount >= 2 && !achievements[3].unlocked) {
+        unlockAchievement('a4');
+      }
+    }
+    
+    // Generate response (simulated AI response)
+    setTimeout(() => {
+      const responseText = generateResponse(messageText);
+      
+      const response: Message = {
+        id: `c${Date.now()}`,
+        text: responseText,
+        sender: 'companion',
+        timestamp: new Date(),
+      };
+      
+      setMessages(prev => [...prev, response]);
+      
+      // Check for emotional explorer achievement
+      if (messages.length > 6 && !achievements[1].unlocked) {
+        unlockAchievement('a2');
       }
       
-      // Simulate AI response after transition
-      setTimeout(() => {
-        const response: Message = {
-          id: `c${Date.now()}`,
-          text: "Positive emotions are like nurturing rain for your emotional garden. As we explore them, notice how they feel in your body - perhaps warmth in your chest, relaxation in your shoulders, or a lightness in your step. By building awareness of these sensations, you can better recognize and cultivate positive states in the future. What specific positive emotion feels strongest right now?",
-          sender: 'companion',
-          timestamp: new Date(),
-        };
-        
-        setMessages(prev => [...prev, response]);
-        setActiveTab("world");
-        
-        // Add this as a memory
-        const newMemory: Memory = {
-          id: `m${Date.now()}`,
-          title: 'Positive Emotion Exploration',
-          description: 'Examined and developed awareness of positive emotional states.',
-          emotion: 'joy',
-          relatedMessages: [response.id],
-          timestamp: new Date(),
-        };
-        
-        setMemories(prev => [...prev, newMemory]);
-        
-        // Increment session progress for deeper exploration
-        setSessionProgress(prev => Math.min(prev + 10, 100));
-      }, 3000);
-    } else if (choiceId.startsWith('identify') || choiceId.startsWith('balance') || choiceId.startsWith('visualize')) {
-      // Simulate AI response after a short delay
-      setTimeout(() => {
-        const response: Message = {
-          id: `c${Date.now()}`,
-          text: "Mixed emotions often contain wisdom from different parts of ourselves. Imagine each emotion as a different colored stream flowing together. There's no need to force these emotions to resolve into a single feeling. By giving gentle attention to each one, you honor your full experience. Would you like to name some of the emotions you're feeling right now?",
-          sender: 'companion',
-          timestamp: new Date(),
-        };
-        
-        setMessages(prev => [...prev, response]);
-        
-        // Update choices
-        setChoices([
-          { id: 'name_emotions', text: 'I feel hopeful but also anxious', voiceEnabled: true },
-          { id: 'emotion_map', text: 'Can we create a map of my emotions?', voiceEnabled: true },
-          { id: 'emotion_wisdom', text: 'What wisdom might these emotions hold?', voiceEnabled: true },
-        ]);
-        
-        // Add this as a memory
-        const newMemory: Memory = {
-          id: `m${Date.now()}`,
-          title: 'Emotional Complexity',
-          description: 'Explored the nuanced landscape of mixed emotions.',
-          emotion: 'reflection',
-          relatedMessages: [response.id],
-          timestamp: new Date(),
-        };
-        
-        setMemories(prev => [...prev, newMemory]);
-        
-        // Increment insights count
-        setInsightsCount(prev => prev + 1);
-      }, 1000);
-    } else if (choiceId.startsWith('gentle') || choiceId.startsWith('comfort') || choiceId.startsWith('find')) {
-      handleDreamTransition("Creating a safe reflection space...");
-      
-      // Simulate AI response after transition
-      setTimeout(() => {
-        const response: Message = {
-          id: `c${Date.now()}`,
-          text: "When we're not feeling our best, it's especially important to approach ourselves with compassion. Imagine you're sitting with a dear friend who's feeling exactly as you are now. What gentle wisdom would you offer them? Sometimes the kindest perspective comes from how we would treat someone we deeply care about.",
-          sender: 'companion',
-          timestamp: new Date(),
-        };
-        
-        setMessages(prev => [...prev, response]);
-        setActiveTab("chat");
-        
-        // Unlock the growth mindset achievement if this is the 5th interaction
-        if (messages.length > 10 && !achievements[2].unlocked) {
-          unlockAchievement('a3');
-        }
-      }, 3000);
-    }
+      // Check for growth mindset achievement
+      if (messages.length > 10 && !achievements[2].unlocked) {
+        unlockAchievement('a3');
+      }
+    }, 1000);
   };
   
   const handleMemorySelect = (memory: Memory) => {
@@ -369,23 +255,12 @@ const Index = () => {
       
       const response: Message = {
         id: `c${Date.now()}`,
-        text: `Returning to '${memory.title}' offers us valuable insights. This moment captured ${emotionDescription}. How does revisiting this reflection feel right now? Has your perspective shifted or deepened since then?`,
+        text: `Returning to '${memory.title}' offers us valuable insights. This moment captured ${emotionDescription}. How does revisiting this reflection feel right now?`,
         sender: 'companion',
         timestamp: new Date(),
       };
       
       setMessages(prev => [...prev, response]);
-      
-      setChoices([
-        { id: 'deeper_reflection', text: 'I\'d like to explore this more deeply', voiceEnabled: true },
-        { id: 'emotion_shift', text: 'My feelings about this have evolved', voiceEnabled: true },
-        { id: 'memory_insight', text: 'I see a pattern in my reflections', voiceEnabled: true },
-      ]);
-      
-      // Unlock the journal keeper achievement if reviewing multiple memories
-      if (memories.length >= 3 && !achievements[3].unlocked) {
-        unlockAchievement('a4');
-      }
     }, 500);
   };
   
@@ -406,10 +281,10 @@ const Index = () => {
       const response: Message = {
         id: `c${Date.now()}`,
         text: pointId === 'point1' 
-          ? "Welcome to the Reflection Garden, a space where your thoughts can bloom freely. Each plant here represents different aspects of emotional growth - patience, resilience, compassion, and joy. As you walk through this garden, notice which plants draw your attention. What qualities might you want to nurture more in your emotional life?"
+          ? "Welcome to the Reflection Garden, a space where your thoughts can bloom freely. Each plant here represents different aspects of emotional growth - patience, resilience, compassion, and joy. What qualities might you want to nurture more in your emotional life?"
           : pointId === 'point2'
-          ? "The Memory Stream flows with moments from your reflection journey. Some memories appear as clear pools, while others mix and blend together. This stream reminds us that our experiences are constantly flowing and changing. Is there a particular memory that stands out to you right now that you'd like to revisit?"
-          : "The Insight Sanctuary is where scattered thoughts coalesce into meaningful patterns. Here, your reflections transform into deeper understanding. What connections are you beginning to see between your different emotional experiences? Even small realizations can lead to significant growth.",
+          ? "The Memory Stream flows with moments from your reflection journey. Some memories appear as clear pools, while others mix and blend together. Is there a particular memory that stands out to you right now that you'd like to revisit?"
+          : "The Insight Sanctuary is where scattered thoughts coalesce into meaningful patterns. What connections are you beginning to see between your different emotional experiences?",
         sender: 'companion',
         timestamp: new Date(),
       };
@@ -427,13 +302,6 @@ const Index = () => {
       };
       
       setMemories(prev => [...prev, newMemory]);
-      
-      // Update choices
-      setChoices([
-        { id: 'reflect_space', text: 'What does this space reveal about my journey?', voiceEnabled: true },
-        { id: 'inner_wisdom', text: 'I sense something meaningful here', voiceEnabled: true },
-        { id: 'growth_question', text: 'How can I apply this insight in my life?', voiceEnabled: true },
-      ]);
       
       // Increment insights for exploring meaningful spaces
       setInsightsCount(prev => prev + 1);
@@ -494,9 +362,8 @@ const Index = () => {
                 
                 <TabsContent value="chat" className="m-0 h-[60vh]">
                   <ChatInterface 
-                    messages={messages} 
-                    choices={choices}
-                    onSelectChoice={handleChoiceSelect}
+                    messages={messages}
+                    onSendMessage={handleSendMessage}
                   />
                 </TabsContent>
                 
