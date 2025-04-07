@@ -1,101 +1,163 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&family=Comfortaa:wght@300;400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --background: 260 60% 98%;
+    --foreground: 260 20% 25%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card: 260 50% 98%;
+    --card-foreground: 260 20% 25%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover: 260 50% 98%;
+    --popover-foreground: 260 20% 25%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 260 85% 65%;
+    --primary-foreground: 260 20% 98%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 217 100% 92%;
+    --secondary-foreground: 217 50% 30%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 260 30% 92%;
+    --muted-foreground: 260 20% 50%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 243 100% 90%;
+    --accent-foreground: 243 50% 30%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 260 20% 98%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --border: 260 30% 90%;
+    --input: 260 30% 90%;
+    --ring: 260 85% 65%;
 
-    --radius: 0.5rem;
+    --radius: 1.5rem;
 
     --sidebar-background: 0 0% 98%;
-
     --sidebar-foreground: 240 5.3% 26.1%;
-
     --sidebar-primary: 240 5.9% 10%;
-
     --sidebar-primary-foreground: 0 0% 98%;
-
     --sidebar-accent: 240 4.8% 95.9%;
-
     --sidebar-accent-foreground: 240 5.9% 10%;
-
     --sidebar-border: 220 13% 91%;
-
     --sidebar-ring: 217.2 91.2% 59.8%;
-  }
-
-  .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
-  }
-}
-
-@layer base {
-  * {
-    @apply border-border;
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Quicksand', sans-serif;
+    background-image: radial-gradient(circle at 80% 20%, rgba(165, 180, 252, 0.2), transparent), 
+                      radial-gradient(circle at 20% 80%, rgba(196, 181, 253, 0.2), transparent);
+    background-attachment: fixed;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Comfortaa', cursive;
+  }
+
+  .watercolor-card {
+    @apply relative overflow-hidden rounded-2xl;
+    background: linear-gradient(135deg, rgba(233, 213, 255, 0.8), rgba(196, 181, 253, 0.5));
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 32px rgba(31, 38, 135, 0.1);
+  }
+
+  .companion-message {
+    @apply bg-whisper-100 text-whisper-900 border-l-4 border-whisper-400 rounded-tl-lg rounded-br-2xl rounded-tr-2xl pl-4 pr-5 py-3 mb-4 max-w-[85%] shadow-sm;
+  }
+
+  .player-message {
+    @apply bg-dream-100 text-dream-900 border-r-4 border-dream-400 rounded-tr-lg rounded-bl-2xl rounded-tl-2xl pr-4 pl-5 py-3 mb-4 max-w-[85%] ml-auto shadow-sm;
+  }
+
+  .memory-card {
+    @apply bg-gradient-to-br from-whisper-50 to-dream-50 border border-whisper-200 rounded-2xl p-5 shadow-md transition-all duration-300;
+  }
+  
+  .memory-card:hover {
+    @apply shadow-lg transform -translate-y-1 border-whisper-300;
+  }
+
+  .dreamy-button {
+    @apply px-5 py-2.5 rounded-full bg-gradient-to-r from-whisper-400 to-dream-400 text-white font-medium
+    shadow-md transition-all duration-300 ease-in-out hover:shadow-lg hover:from-whisper-500 hover:to-dream-500
+    focus:outline-none focus:ring-2 focus:ring-whisper-300 active:shadow-sm;
+  }
+
+  .choice-button {
+    @apply px-4 py-2 rounded-xl text-sm md:text-base bg-white/80 backdrop-blur-sm text-whisper-700 font-medium
+    border border-whisper-200 shadow-sm transition-all duration-200 ease-in-out hover:bg-whisper-50
+    hover:border-whisper-300 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-whisper-200;
+  }
+
+  .dream-transition {
+    animation: dream-transition 2s ease-out forwards;
+  }
+
+  @keyframes dream-transition {
+    0% {
+      opacity: 0;
+      filter: blur(12px);
+      transform: scale(1.05);
+    }
+    100% {
+      opacity: 1;
+      filter: blur(0);
+      transform: scale(1);
+    }
+  }
+
+  .floating {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+
+  .particles-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .particle {
+    position: absolute;
+    border-radius: 50%;
+    opacity: 0.6;
+    animation-name: float-particle;
+    animation-timing-function: ease-in-out;
+    animation-iteration-count: infinite;
+    background: linear-gradient(to right, rgba(196, 181, 253, 0.8), rgba(165, 180, 252, 0.8));
+  }
+
+  @keyframes float-particle {
+    0%, 100% {
+      transform: translateY(0) translateX(0);
+    }
+    25% {
+      transform: translateY(-30px) translateX(15px);
+    }
+    50% {
+      transform: translateY(-15px) translateX(30px);
+    }
+    75% {
+      transform: translateY(-30px) translateX(15px);
+    }
   }
 }
