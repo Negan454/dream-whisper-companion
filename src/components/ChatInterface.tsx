@@ -2,7 +2,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import CompanionMessage from './CompanionMessage';
 import PlayerMessage from './PlayerMessage';
-import PlayerChoices from './PlayerChoices';
 import { Input } from './ui/input';
 import { Send } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -16,24 +15,14 @@ export interface Message {
 
 interface ChatInterfaceProps {
   messages: Message[];
-  choices?: {
-    id: string;
-    text: string;
-    voiceEnabled?: boolean;
-  }[];
-  onSelectChoice?: (choiceId: string) => void;
   onSendMessage?: (message: string) => void;
   className?: string;
-  showChoices?: boolean;
 }
 
 const ChatInterface = ({
   messages,
-  choices = [],
-  onSelectChoice = () => {},
   onSendMessage = () => {},
   className,
-  showChoices = true,
 }: ChatInterfaceProps) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [inputValue, setInputValue] = useState('');
@@ -78,15 +67,6 @@ const ChatInterface = ({
         ))}
         <div ref={messagesEndRef} />
       </div>
-      
-      {showChoices && choices.length > 0 && (
-        <div className="p-4 border-t border-whisper-100 bg-white/50 backdrop-blur-sm">
-          <PlayerChoices 
-            choices={choices} 
-            onSelectChoice={onSelectChoice} 
-          />
-        </div>
-      )}
 
       <div className="p-4 border-t border-whisper-100 bg-white/50 backdrop-blur-sm">
         <div className="flex items-center gap-2">
