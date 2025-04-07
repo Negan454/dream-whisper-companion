@@ -162,7 +162,7 @@ const Index = () => {
         // Update choices
         setChoices([
           { id: 'peaceful', text: 'I feel peaceful and intrigued', voiceEnabled: true },
-          { id: 'curious', text: "Curious about what we'll discover", voiceEnabled: true },
+          { id: 'curious', text: "Curious about what we will discover", voiceEnabled: true },
           { id: 'confused', text: 'A bit disoriented, but in a good way', voiceEnabled: true },
         ]);
         
