@@ -234,8 +234,15 @@ const Index = () => {
         }
         
         // Add memory for this emotional reflection
-        const emotionType: Emotion = choiceId === 'feeling_good' ? 'joy' : 
-                                    choiceId === 'feeling_mixed' ? 'reflection' : 'wonder';
+        let emotionType: Emotion = 'reflection'; // Default value
+        
+        if (choiceId === 'feeling_good') {
+          emotionType = 'joy';
+        } else if (choiceId === 'feeling_mixed') {
+          emotionType = 'reflection';
+        } else {
+          emotionType = 'wonder';
+        }
         
         const newMemory: Memory = {
           id: `m${Date.now()}`,
@@ -274,7 +281,7 @@ const Index = () => {
         setActiveTab("world");
         
         // Add this as a memory
-        const newMemory = {
+        const newMemory: Memory = {
           id: `m${Date.now()}`,
           title: 'Positive Emotion Exploration',
           description: 'Examined and developed awareness of positive emotional states.',

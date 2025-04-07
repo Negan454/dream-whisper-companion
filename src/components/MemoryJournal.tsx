@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { cn } from '@/lib/utils';
 import { Book, Heart, Star, Sparkles } from 'lucide-react';
