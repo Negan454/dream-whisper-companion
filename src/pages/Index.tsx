@@ -12,7 +12,7 @@ import AchievementPopup from '@/components/AchievementPopup';
 import DisclaimerBanner from '@/components/DisclaimerBanner';
 
 // Define emotion type to handle all possible emotions
-type Emotion = 'wonder' | 'reflection' | 'curiosity' | 'joy';
+type Emotion = 'joy' | 'wonder' | 'reflection' | 'curiosity';
 
 // Memory interface to properly type our state
 interface Memory {
