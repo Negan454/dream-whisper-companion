@@ -28,6 +28,16 @@ interface Achievement {
   unlocked: boolean;
 }
 
+interface EmotionCount {
+  emotion: Emotion;
+  count: number;
+}
+
+interface EmotionTrend {
+  time: string;
+  emotion: Emotion;
+}
+
 // Initial welcome message
 const initialMessages: Message[] = [
   {
@@ -127,6 +137,42 @@ const Index = () => {
   const [showAchievement, setShowAchievement] = useState(false);
   const [currentAchievement, setCurrentAchievement] = useState<Achievement | null>(null);
   
+  // New state for emotion tracking
+  const [emotionCounts, setEmotionCounts] = useState<EmotionCount[]>([
+    { emotion: 'joy', count: 0 },
+    { emotion: 'wonder', count: 1 }, // Start with one wonder from the initial memory
+    { emotion: 'reflection', count: 0 },
+    { emotion: 'curiosity', count: 0 },
+  ]);
+  
+  const [emotionTrends, setEmotionTrends] = useState<EmotionTrend[]>([
+    { 
+      time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}), 
+      emotion: 'wonder' 
+    }
+  ]);
+  
+  // Function to track a new emotion
+  const trackEmotion = (emotion: Emotion) => {
+    // Update emotion counts
+    setEmotionCounts(prev => 
+      prev.map(item => 
+        item.emotion === emotion 
+          ? { ...item, count: item.count + 1 } 
+          : item
+      )
+    );
+    
+    // Add to emotion trends
+    setEmotionTrends(prev => [
+      ...prev, 
+      { 
+        time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}), 
+        emotion: emotion 
+      }
+    ]);
+  };
+  
   // Function to unlock achievements and show notification
   const unlockAchievement = (achievementId: string) => {
     const achievement = achievements.find(a => a.id === achievementId && !a.unlocked);
@@ -160,6 +206,9 @@ const Index = () => {
     
     // Analyze sentiment and determine emotion
     const emotion = analyzeSentiment(messageText);
+    
+    // Track the emotion
+    trackEmotion(emotion);
     
     // Add memory for significant messages
     if (messageText.length > 15) {
@@ -244,6 +293,8 @@ const Index = () => {
             insightsCount={insightsCount}
             achievements={achievements}
             recentMemories={memories}
+            emotionCounts={emotionCounts}
+            emotionTrends={emotionTrends}
           />
         </div>
         

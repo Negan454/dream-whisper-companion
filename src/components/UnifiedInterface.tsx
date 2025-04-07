@@ -1,11 +1,15 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Message } from '@/components/ChatInterface';
 import ChatInterface from '@/components/ChatInterface';
 import { Award, Heart, Book, Star } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
+import SessionInsights from './SessionInsights';
+
+// Define emotion type to handle all possible emotions
+type Emotion = 'joy' | 'wonder' | 'reflection' | 'curiosity';
 
 interface Achievement {
   id: string;
@@ -19,9 +23,19 @@ interface Memory {
   id: string;
   title: string;
   description: string;
-  emotion: 'joy' | 'wonder' | 'reflection' | 'curiosity';
+  emotion: Emotion;
   relatedMessages: string[];
   timestamp: Date;
+}
+
+interface EmotionCount {
+  emotion: Emotion;
+  count: number;
+}
+
+interface EmotionTrend {
+  time: string;
+  emotion: Emotion;
 }
 
 interface UnifiedInterfaceProps {
@@ -32,6 +46,8 @@ interface UnifiedInterfaceProps {
   insightsCount: number;
   achievements: Achievement[];
   recentMemories: Memory[];
+  emotionCounts: EmotionCount[];
+  emotionTrends: EmotionTrend[];
   className?: string;
 }
 
@@ -43,8 +59,11 @@ const UnifiedInterface = ({
   insightsCount,
   achievements,
   recentMemories,
+  emotionCounts,
+  emotionTrends,
   className
 }: UnifiedInterfaceProps) => {
+  const [showInsights, setShowInsights] = useState(true);
   
   const getIcon = (iconName: 'award' | 'star' | 'heart' | 'book') => {
     switch (iconName) {
@@ -57,16 +76,16 @@ const UnifiedInterface = ({
 
   return (
     <Card className={cn("therapeutic-card overflow-hidden border-none shadow-xl h-[70vh] grid grid-cols-12", className)}>
-      {/* Main chat area - 9 columns */}
-      <div className="col-span-9 border-r border-teal-100 flex flex-col">
+      {/* Main chat area - 8 columns */}
+      <div className="col-span-8 border-r border-teal-100 flex flex-col">
         <ChatInterface 
           messages={messages}
           onSendMessage={onSendMessage}
         />
       </div>
       
-      {/* Progress sidebar - 3 columns */}
-      <div className="col-span-3 bg-white/70 backdrop-blur-sm flex flex-col overflow-y-auto">
+      {/* Progress sidebar - 4 columns */}
+      <div className="col-span-4 bg-white/70 backdrop-blur-sm flex flex-col overflow-y-auto">
         <div className="p-4 border-b border-teal-100">
           <h3 className="text-lg font-medium text-teal-800 mb-2">Your Progress</h3>
           <div className="mb-4">
@@ -87,6 +106,14 @@ const UnifiedInterface = ({
               <p className="text-lg font-bold text-blue-600">{insightsCount}</p>
             </div>
           </div>
+        </div>
+        
+        {/* Session Insights Section */}
+        <div className="p-4 border-b border-teal-100">
+          <SessionInsights 
+            emotionCounts={emotionCounts}
+            emotionTrends={emotionTrends}
+          />
         </div>
         
         <div className="p-4 border-b border-teal-100">
