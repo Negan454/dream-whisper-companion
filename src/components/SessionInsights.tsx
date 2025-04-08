@@ -110,10 +110,10 @@ const SessionInsights = ({ emotionCounts, emotionTrends, className }: SessionIns
           <div className="h-40 w-full">
             <ChartContainer
               config={{
-                joy: { theme: { light: emotionColors.joy } },
-                wonder: { theme: { light: emotionColors.wonder } },
-                reflection: { theme: { light: emotionColors.reflection } },
-                curiosity: { theme: { light: emotionColors.curiosity } },
+                joy: { theme: { light: emotionColors.joy, dark: emotionColors.joy } },
+                wonder: { theme: { light: emotionColors.wonder, dark: emotionColors.wonder } },
+                reflection: { theme: { light: emotionColors.reflection, dark: emotionColors.reflection } },
+                curiosity: { theme: { light: emotionColors.curiosity, dark: emotionColors.curiosity } },
               }}
             >
               <ResponsiveContainer width="100%" height="100%">
