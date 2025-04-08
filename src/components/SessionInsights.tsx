@@ -52,11 +52,11 @@ const emotionActivitySuggestions = {
   wonder: [
     'Explore a topic that fascinates you for 10 minutes',
     'Try a brief mindfulness meditation focusing on openness',
-    'Ask yourself a question you've never considered before',
+    'Ask yourself a question you\'ve never considered before',
   ],
   reflection: [
-    'Take a brief walk and consider what you've learned today',
-    'Write down one insight you've gained from recent experiences',
+    'Take a brief walk and consider what you\'ve learned today',
+    'Write down one insight you\'ve gained from recent experiences',
     'Practice deep breathing while reflecting on your growth',
   ],
   curiosity: [
