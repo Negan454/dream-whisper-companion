@@ -7,6 +7,7 @@ import DisclaimerBanner from '@/components/DisclaimerBanner';
 import BadgeNotification from '@/components/BadgeNotification';
 import AffirmationFloat from '@/components/AffirmationFloat';
 import { GamificationProvider, useGamification } from '@/contexts/GamificationContext';
+import { useMemorySystem } from '@/hooks/useMemorySystem';
 
 // Define emotion type to handle all possible emotions
 type Emotion = 'joy' | 'wonder' | 'reflection' | 'curiosity';
@@ -60,42 +61,10 @@ const initialMemories: Memory[] = [
   },
 ];
 
-const initialAchievements: Achievement[] = [
-  {
-    id: 'a1',
-    title: 'First Steps',
-    description: 'Begin your journey of self-reflection',
-    icon: 'star',
-    unlocked: true
-  },
-  {
-    id: 'a2',
-    title: 'Emotional Explorer',
-    description: 'Identify and acknowledge 3 different emotions',
-    icon: 'heart',
-    unlocked: false
-  },
-  {
-    id: 'a3',
-    title: 'Growth Mindset',
-    description: 'Complete 5 reflection sessions',
-    icon: 'award',
-    unlocked: false
-  },
-  {
-    id: 'a4',
-    title: 'Journal Keeper',
-    description: 'Create 3 personal insights',
-    icon: 'book',
-    unlocked: false
-  }
-];
-
 // Function to analyze text sentiment and determine emotion
 const analyzeSentiment = (text: string): Emotion => {
   const text_lower = text.toLowerCase();
   
-  // Simple keyword-based analysis - in a real app, you'd use a more sophisticated NLP approach
   if (text_lower.includes('happy') || text_lower.includes('glad') || text_lower.includes('joy') || 
       text_lower.includes('excited') || text_lower.includes('good')) {
     return 'joy';
@@ -106,41 +75,7 @@ const analyzeSentiment = (text: string): Emotion => {
              text_lower.includes('consider') || text_lower.includes('ponder')) {
     return 'reflection';
   } else {
-    return 'curiosity'; // Default
-  }
-};
-
-// Function to generate AI response with gamification awareness
-const generateResponse = (message: string, unlockBadge: (id: string) => void, addSeeds: (amount: number, reason: string) => void, triggerAffirmation: (msg: string) => void): string => {
-  const text_lower = message.toLowerCase();
-  
-  // Check for badge-worthy moments and award seeds
-  if (text_lower.includes('difficult') || text_lower.includes('hard') || text_lower.includes('struggle')) {
-    unlockBadge('brave-heart');
-    addSeeds(15, 'Shared something difficult');
-    triggerAffirmation("Your courage to share this shows incredible strength");
-  } else if (text_lower.includes('grateful') || text_lower.includes('thankful') || text_lower.includes('appreciate')) {
-    unlockBadge('inner-light');
-    addSeeds(10, 'Practiced gratitude');
-  } else if (text_lower.includes('anxious') || text_lower.includes('worried') || text_lower.includes('stress')) {
-    unlockBadge('quiet-strength');
-    addSeeds(12, 'Acknowledged anxiety without judgment');
-  }
-  
-  // Generate contextual responses
-  if (text_lower.includes('how are you')) {
-    addSeeds(5, 'Daily check-in');
-    return "I'm here to support your reflection journey. How are you feeling today?";
-  } else if (text_lower.includes('feeling')) {
-    addSeeds(8, 'Shared feelings');
-    return "Emotions provide valuable insight into our inner landscape. What do you think might be influencing how you feel right now?";
-  } else if (text_lower.includes('stress') || text_lower.includes('anxious')) {
-    return "It sounds like you're experiencing some tension. Taking a moment to breathe deeply can help create a little space around difficult emotions. Would you like to explore what might be contributing to these feelings?";
-  } else if (text_lower.includes('happy') || text_lower.includes('joy')) {
-    return "I'm glad to hear you're experiencing positive emotions. Savoring these moments can help strengthen your emotional resilience. What aspects of this experience would you like to carry forward?";
-  } else {
-    addSeeds(5, 'Continued reflection');
-    return "Thank you for sharing. Continued reflection can reveal patterns and insights about your emotional experience. Is there a specific aspect you'd like to explore further?";
+    return 'curiosity';
   }
 };
 
@@ -149,12 +84,12 @@ const IndexContent = () => {
   const [memories, setMemories] = useState<Memory[]>(initialMemories);
   const [showTransition, setShowTransition] = useState(false);
   const [transitionMessage, setTransitionMessage] = useState<string | null>(null);
-  const [insightsCount, setInsightsCount] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
   
   // New state for emotion tracking
   const [emotionCounts, setEmotionCounts] = useState<EmotionCount[]>([
     { emotion: 'joy', count: 0 },
-    { emotion: 'wonder', count: 1 }, // Start with one wonder from the initial memory
+    { emotion: 'wonder', count: 1 },
     { emotion: 'reflection', count: 0 },
     { emotion: 'curiosity', count: 0 },
   ]);
@@ -166,8 +101,13 @@ const IndexContent = () => {
     }
   ]);
 
-  // Use gamification context
+  // Use gamification context and memory system
   const { state, addSeeds, unlockBadge, triggerAffirmation, checkDailyReset } = useGamification();
+  const { 
+    addToShortTermMemory, 
+    getConversationHistory,
+    getTherapyNotes 
+  } = useMemorySystem();
   
   // Check for daily reset on component mount
   useEffect(() => {
@@ -176,7 +116,6 @@ const IndexContent = () => {
   
   // Function to track a new emotion
   const trackEmotion = (emotion: Emotion) => {
-    // Update emotion counts
     setEmotionCounts(prev => 
       prev.map(item => 
         item.emotion === emotion 
@@ -185,7 +124,6 @@ const IndexContent = () => {
       )
     );
     
-    // Add to emotion trends
     setEmotionTrends(prev => [
       ...prev, 
       { 
@@ -194,9 +132,64 @@ const IndexContent = () => {
       }
     ]);
   };
+
+  // Function to call your backend API
+  const callTherapistAPI = async (userMessage: string): Promise<{ response: string; emotion: string; memory_tag: string }> => {
+    try {
+      const conversationHistory = getConversationHistory();
+      
+      const response = await fetch('http://localhost:8000/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          user_input: userMessage,
+          history: conversationHistory
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return {
+        response: data.response,
+        emotion: data.emotion,
+        memory_tag: data.memory_tag
+      };
+    } catch (error) {
+      console.error('Error calling therapist API:', error);
+      return {
+        response: "I'm having trouble connecting right now, but I'm here to listen. Would you like to try sharing again?",
+        emotion: 'neutral',
+        memory_tag: 'connection_error'
+      };
+    }
+  };
+
+  // Function to check for badge-worthy moments
+  const checkForBadges = (userMessage: string, emotion: string) => {
+    const text_lower = userMessage.toLowerCase();
+    
+    if (text_lower.includes('difficult') || text_lower.includes('hard') || text_lower.includes('struggle')) {
+      unlockBadge('brave-heart');
+      addSeeds(15, 'Shared something difficult');
+      triggerAffirmation("Your courage to share this shows incredible strength");
+    } else if (text_lower.includes('grateful') || text_lower.includes('thankful') || text_lower.includes('appreciate')) {
+      unlockBadge('inner-light');
+      addSeeds(10, 'Practiced gratitude');
+    } else if (text_lower.includes('anxious') || text_lower.includes('worried') || text_lower.includes('stress')) {
+      unlockBadge('quiet-strength');
+      addSeeds(12, 'Acknowledged anxiety without judgment');
+    } else {
+      addSeeds(5, 'Continued reflection');
+    }
+  };
   
   // Handle user message submission
-  const handleSendMessage = (messageText: string) => {
+  const handleSendMessage = async (messageText: string) => {
     // Create new player message
     const playerMessage: Message = {
       id: `p${Date.now()}`,
@@ -207,55 +200,77 @@ const IndexContent = () => {
     
     // Add player message to chat
     setMessages(prev => [...prev, playerMessage]);
+    setIsLoading(true);
     
-    // Analyze sentiment and determine emotion
-    const emotion = analyzeSentiment(messageText);
-    
-    // Track the emotion
-    trackEmotion(emotion);
-    
-    // Add memory for significant messages
-    if (messageText.length > 15) {
-      const newMemory: Memory = {
-        id: `m${Date.now()}`,
-        title: `Reflection on ${new Date().toLocaleDateString()}`,
-        description: messageText.length > 50 ? `${messageText.substring(0, 50)}...` : messageText,
-        emotion: emotion,
-        relatedMessages: [playerMessage.id],
-        timestamp: new Date(),
-      };
+    try {
+      // Call your backend API
+      const apiResponse = await callTherapistAPI(messageText);
       
-      setMemories(prev => [...prev, newMemory]);
+      // Determine emotion (use API response or fallback to local analysis)
+      const emotion = apiResponse.emotion !== 'neutral' ? 
+        apiResponse.emotion as Emotion : 
+        analyzeSentiment(messageText);
       
-      // Increment insights count
-      setInsightsCount(prev => prev + 1);
+      // Track the emotion
+      trackEmotion(emotion);
       
-      // Check for consistency badges
-      if (state.reflectionStreak >= 7) {
-        unlockBadge('seven-days');
+      // Check for badges and award seeds
+      checkForBadges(messageText, emotion);
+      
+      // Add memory for significant messages
+      if (messageText.length > 15) {
+        const newMemory: Memory = {
+          id: `m${Date.now()}`,
+          title: `Reflection on ${new Date().toLocaleDateString()}`,
+          description: messageText.length > 50 ? `${messageText.substring(0, 50)}...` : messageText,
+          emotion: emotion,
+          relatedMessages: [playerMessage.id],
+          timestamp: new Date(),
+        };
+        
+        setMemories(prev => [...prev, newMemory]);
       }
-    }
-    
-    // Generate response with gamification
-    setTimeout(() => {
-      const responseText = generateResponse(messageText, unlockBadge, addSeeds, triggerAffirmation);
       
+      // Create therapist response
       const response: Message = {
         id: `c${Date.now()}`,
-        text: responseText,
+        text: apiResponse.response,
         sender: 'companion',
         timestamp: new Date(),
       };
       
+      // Add to short-term memory
+      addToShortTermMemory(
+        messageText,
+        apiResponse.response,
+        emotion,
+        apiResponse.memory_tag
+      );
+      
+      // Add response to chat
       setMessages(prev => [...prev, response]);
-    }, 1000);
+      
+    } catch (error) {
+      console.error('Error processing message:', error);
+      
+      // Fallback response
+      const fallbackResponse: Message = {
+        id: `c${Date.now()}`,
+        text: "I'm experiencing some technical difficulties, but your thoughts are important. Would you like to try sharing again?",
+        sender: 'companion',
+        timestamp: new Date(),
+      };
+      
+      setMessages(prev => [...prev, fallbackResponse]);
+    } finally {
+      setIsLoading(false);
+    }
   };
   
   const handleDreamTransition = (message: string) => {
     setTransitionMessage(message);
     setShowTransition(true);
     
-    // Hide transition after animation completes
     setTimeout(() => {
       setShowTransition(false);
       setTransitionMessage(null);
@@ -316,6 +331,16 @@ const IndexContent = () => {
         message={state.lastAffirmation}
         onClose={() => triggerAffirmation(null)}
       />
+      
+      {/* Loading indicator */}
+      {isLoading && (
+        <div className="fixed bottom-4 right-4 bg-white/90 backdrop-blur-sm rounded-lg p-3 shadow-lg border border-teal-200">
+          <div className="flex items-center gap-2">
+            <div className="animate-spin h-4 w-4 border-2 border-teal-500 border-t-transparent rounded-full"></div>
+            <span className="text-sm text-teal-700">Dr. Sage is thinking...</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

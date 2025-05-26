@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Message } from '@/components/ChatInterface';
@@ -6,6 +7,7 @@ import { cn } from '@/lib/utils';
 import SessionInsights from './SessionInsights';
 import ProgressGarden from './ProgressGarden';
 import QuestProgress from './QuestProgress';
+import TherapyNotes from './TherapyNotes';
 import { useGamification } from '@/contexts/GamificationContext';
 
 // Define emotion type to handle all possible emotions
@@ -55,7 +57,7 @@ const UnifiedInterface = ({
   emotionTrends,
   className
 }: UnifiedInterfaceProps) => {
-  const [activeTab, setActiveTab] = useState<'progress' | 'quests' | 'insights'>('progress');
+  const [activeTab, setActiveTab] = useState<'progress' | 'quests' | 'insights' | 'notes'>('progress');
   const { state, updateQuestProgress } = useGamification();
   
   const handleMilestoneClick = (questId: string, milestoneId: string) => {
@@ -80,13 +82,14 @@ const UnifiedInterface = ({
             {[
               { id: 'progress', label: 'Garden' },
               { id: 'quests', label: 'Quests' },
-              { id: 'insights', label: 'Insights' }
+              { id: 'insights', label: 'Insights' },
+              { id: 'notes', label: 'Notes' }
             ].map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as any)}
                 className={cn(
-                  "flex-1 py-2 px-3 text-xs font-medium rounded-md transition-colors",
+                  "flex-1 py-2 px-2 text-xs font-medium rounded-md transition-colors",
                   activeTab === tab.id
                     ? "bg-white text-teal-700 shadow-sm"
                     : "text-teal-600 hover:text-teal-700"
@@ -138,6 +141,10 @@ const UnifiedInterface = ({
                 ))}
               </div>
             </div>
+          )}
+
+          {activeTab === 'notes' && (
+            <TherapyNotes />
           )}
         </div>
       </div>
