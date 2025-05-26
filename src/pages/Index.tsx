@@ -1,11 +1,12 @@
-
 import React, { useState, useEffect } from 'react';
 import { Message } from '@/components/ChatInterface';
 import UnifiedInterface from '@/components/UnifiedInterface';
 import Particles from '@/components/Particles';
 import DreamTransition from '@/components/DreamTransition';
-import AchievementPopup from '@/components/AchievementPopup';
 import DisclaimerBanner from '@/components/DisclaimerBanner';
+import BadgeNotification from '@/components/BadgeNotification';
+import AffirmationFloat from '@/components/AffirmationFloat';
+import { GamificationProvider, useGamification } from '@/contexts/GamificationContext';
 
 // Define emotion type to handle all possible emotions
 type Emotion = 'joy' | 'wonder' | 'reflection' | 'curiosity';
@@ -109,33 +110,46 @@ const analyzeSentiment = (text: string): Emotion => {
   }
 };
 
-// Function to generate AI response - this would connect to a backend API in a real app
-const generateResponse = (message: string): string => {
-  // Simple response logic - in a real app, this would call an API
-  if (message.toLowerCase().includes('how are you')) {
+// Function to generate AI response with gamification awareness
+const generateResponse = (message: string, unlockBadge: (id: string) => void, addSeeds: (amount: number, reason: string) => void, triggerAffirmation: (msg: string) => void): string => {
+  const text_lower = message.toLowerCase();
+  
+  // Check for badge-worthy moments and award seeds
+  if (text_lower.includes('difficult') || text_lower.includes('hard') || text_lower.includes('struggle')) {
+    unlockBadge('brave-heart');
+    addSeeds(15, 'Shared something difficult');
+    triggerAffirmation("Your courage to share this shows incredible strength");
+  } else if (text_lower.includes('grateful') || text_lower.includes('thankful') || text_lower.includes('appreciate')) {
+    unlockBadge('inner-light');
+    addSeeds(10, 'Practiced gratitude');
+  } else if (text_lower.includes('anxious') || text_lower.includes('worried') || text_lower.includes('stress')) {
+    unlockBadge('quiet-strength');
+    addSeeds(12, 'Acknowledged anxiety without judgment');
+  }
+  
+  // Generate contextual responses
+  if (text_lower.includes('how are you')) {
+    addSeeds(5, 'Daily check-in');
     return "I'm here to support your reflection journey. How are you feeling today?";
-  } else if (message.toLowerCase().includes('feeling')) {
+  } else if (text_lower.includes('feeling')) {
+    addSeeds(8, 'Shared feelings');
     return "Emotions provide valuable insight into our inner landscape. What do you think might be influencing how you feel right now?";
-  } else if (message.toLowerCase().includes('stress') || message.toLowerCase().includes('anxious')) {
+  } else if (text_lower.includes('stress') || text_lower.includes('anxious')) {
     return "It sounds like you're experiencing some tension. Taking a moment to breathe deeply can help create a little space around difficult emotions. Would you like to explore what might be contributing to these feelings?";
-  } else if (message.toLowerCase().includes('happy') || message.toLowerCase().includes('joy')) {
+  } else if (text_lower.includes('happy') || text_lower.includes('joy')) {
     return "I'm glad to hear you're experiencing positive emotions. Savoring these moments can help strengthen your emotional resilience. What aspects of this experience would you like to carry forward?";
   } else {
+    addSeeds(5, 'Continued reflection');
     return "Thank you for sharing. Continued reflection can reveal patterns and insights about your emotional experience. Is there a specific aspect you'd like to explore further?";
   }
 };
 
-const Index = () => {
+const IndexContent = () => {
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [memories, setMemories] = useState<Memory[]>(initialMemories);
-  const [achievements, setAchievements] = useState<Achievement[]>(initialAchievements);
   const [showTransition, setShowTransition] = useState(false);
   const [transitionMessage, setTransitionMessage] = useState<string | null>(null);
-  const [sessionProgress, setSessionProgress] = useState(10);
-  const [reflectionStreak, setReflectionStreak] = useState(1);
   const [insightsCount, setInsightsCount] = useState(0);
-  const [showAchievement, setShowAchievement] = useState(false);
-  const [currentAchievement, setCurrentAchievement] = useState<Achievement | null>(null);
   
   // New state for emotion tracking
   const [emotionCounts, setEmotionCounts] = useState<EmotionCount[]>([
@@ -151,6 +165,14 @@ const Index = () => {
       emotion: 'wonder' 
     }
   ]);
+
+  // Use gamification context
+  const { state, addSeeds, unlockBadge, triggerAffirmation, checkDailyReset } = useGamification();
+  
+  // Check for daily reset on component mount
+  useEffect(() => {
+    checkDailyReset();
+  }, []);
   
   // Function to track a new emotion
   const trackEmotion = (emotion: Emotion) => {
@@ -173,21 +195,6 @@ const Index = () => {
     ]);
   };
   
-  // Function to unlock achievements and show notification
-  const unlockAchievement = (achievementId: string) => {
-    const achievement = achievements.find(a => a.id === achievementId && !a.unlocked);
-    if (achievement) {
-      setAchievements(prev => 
-        prev.map(a => a.id === achievementId ? {...a, unlocked: true} : a)
-      );
-      setCurrentAchievement(achievement);
-      setShowAchievement(true);
-      
-      // Increment session progress when achievement is unlocked
-      setSessionProgress(prev => Math.min(prev + 15, 100));
-    }
-  };
-  
   // Handle user message submission
   const handleSendMessage = (messageText: string) => {
     // Create new player message
@@ -200,9 +207,6 @@ const Index = () => {
     
     // Add player message to chat
     setMessages(prev => [...prev, playerMessage]);
-    
-    // Increment session progress with each interaction
-    setSessionProgress(prev => Math.min(prev + 5, 100));
     
     // Analyze sentiment and determine emotion
     const emotion = analyzeSentiment(messageText);
@@ -226,15 +230,15 @@ const Index = () => {
       // Increment insights count
       setInsightsCount(prev => prev + 1);
       
-      // Check for achievements
-      if (insightsCount >= 2 && !achievements[3].unlocked) {
-        unlockAchievement('a4');
+      // Check for consistency badges
+      if (state.reflectionStreak >= 7) {
+        unlockBadge('seven-days');
       }
     }
     
-    // Generate response (simulated AI response)
+    // Generate response with gamification
     setTimeout(() => {
-      const responseText = generateResponse(messageText);
+      const responseText = generateResponse(messageText, unlockBadge, addSeeds, triggerAffirmation);
       
       const response: Message = {
         id: `c${Date.now()}`,
@@ -244,16 +248,6 @@ const Index = () => {
       };
       
       setMessages(prev => [...prev, response]);
-      
-      // Check for emotional explorer achievement
-      if (messages.length > 6 && !achievements[1].unlocked) {
-        unlockAchievement('a2');
-      }
-      
-      // Check for growth mindset achievement
-      if (messages.length > 10 && !achievements[2].unlocked) {
-        unlockAchievement('a3');
-      }
     }, 1000);
   };
   
@@ -288,10 +282,6 @@ const Index = () => {
           <UnifiedInterface 
             messages={messages}
             onSendMessage={handleSendMessage}
-            sessionProgress={sessionProgress}
-            reflectionStreak={reflectionStreak}
-            insightsCount={insightsCount}
-            achievements={achievements}
             recentMemories={memories}
             emotionCounts={emotionCounts}
             emotionTrends={emotionTrends}
@@ -316,16 +306,25 @@ const Index = () => {
         )}
       </DreamTransition>
       
-      {/* Achievement popup */}
-      {currentAchievement && (
-        <AchievementPopup
-          title={currentAchievement.title}
-          description={currentAchievement.description}
-          isVisible={showAchievement}
-          onClose={() => setShowAchievement(false)}
-        />
-      )}
+      {/* Gamification notifications */}
+      <BadgeNotification
+        badge={state.recentBadge}
+        onClose={() => {}}
+      />
+      
+      <AffirmationFloat
+        message={state.lastAffirmation}
+        onClose={() => triggerAffirmation(null)}
+      />
     </div>
+  );
+};
+
+const Index = () => {
+  return (
+    <GamificationProvider>
+      <IndexContent />
+    </GamificationProvider>
   );
 };
 
