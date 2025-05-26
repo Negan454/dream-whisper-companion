@@ -22,6 +22,13 @@ export interface LongTermMemory {
   triggerPatterns: string[];
   copingStrategies: string[];
   sessionCount: number;
+  patientProfile: {
+    name?: string;
+    commonConcerns: string[];
+    preferredCopingMethods: string[];
+    emotionalPatterns: string[];
+    personalDetails: string[];
+  };
 }
 
 export interface TherapySession {
@@ -32,6 +39,16 @@ export interface TherapySession {
   emotionalTone: string;
   breakthroughs: string[];
   actionItems: string[];
+  sessionSummary: string;
+  messageCount: number;
+}
+
+export interface ConversationContext {
+  recentConversations: string[];
+  patientProfile: string;
+  keyInsights: string[];
+  emotionalPatterns: string;
+  previousSessions: string[];
 }
 
 export const useMemorySystem = () => {
@@ -77,7 +94,13 @@ export const useMemorySystem = () => {
     importantMilestones: [],
     triggerPatterns: [],
     copingStrategies: [],
-    sessionCount: 0
+    sessionCount: 0,
+    patientProfile: {
+      commonConcerns: [],
+      preferredCopingMethods: [],
+      emotionalPatterns: [],
+      personalDetails: []
+    }
   });
 
   const addToShortTermMemory = (
@@ -126,16 +149,44 @@ export const useMemorySystem = () => {
     }
 
     // Identify coping strategies mentioned
-    const copingKeywords = ['breathe', 'meditate', 'journal', 'walk', 'talk', 'exercise'];
+    const copingKeywords = ['breathe', 'meditate', 'journal', 'walk', 'talk', 'exercise', 'sleep', 'music'];
     const hasCopingStrategy = copingKeywords.some(keyword => 
       memory.userMessage.toLowerCase().includes(keyword) || 
       memory.therapistResponse.toLowerCase().includes(keyword)
     );
     
     if (hasCopingStrategy) {
-      const strategy = `Session ${new Date().toLocaleDateString()}: Discussed ${memory.memoryTag.substring(0, 40)}`;
+      const strategy = `${memory.memoryTag.substring(0, 40)} (${new Date().toLocaleDateString()})`;
       if (!updatedLTM.copingStrategies.includes(strategy)) {
         updatedLTM.copingStrategies.push(strategy);
+      }
+    }
+
+    // Extract personal details
+    const personalKeywords = ['family', 'work', 'school', 'relationship', 'friend', 'parent', 'child'];
+    const hasPersonalDetail = personalKeywords.some(keyword => 
+      memory.userMessage.toLowerCase().includes(keyword)
+    );
+    
+    if (hasPersonalDetail && memory.userMessage.length > 30) {
+      const detail = memory.userMessage.substring(0, 80);
+      if (!updatedLTM.patientProfile.personalDetails.some(d => d.includes(detail.substring(0, 20)))) {
+        updatedLTM.patientProfile.personalDetails.push(detail);
+      }
+    }
+
+    // Track common concerns
+    const concernKeywords = ['anxiety', 'stress', 'worried', 'sad', 'angry', 'lonely', 'overwhelmed'];
+    const hasConcern = concernKeywords.some(keyword => 
+      memory.userMessage.toLowerCase().includes(keyword)
+    );
+    
+    if (hasConcern) {
+      const concern = concernKeywords.find(keyword => 
+        memory.userMessage.toLowerCase().includes(keyword)
+      );
+      if (concern && !updatedLTM.patientProfile.commonConcerns.includes(concern)) {
+        updatedLTM.patientProfile.commonConcerns.push(concern);
       }
     }
 
@@ -152,21 +203,65 @@ export const useMemorySystem = () => {
       ]);
   };
 
+  const getConversationContextForAPI = (): ConversationContext => {
+    // Get recent conversations from current session
+    const currentSessionMemories = shortTermMemory.filter(m => m.sessionId === currentSessionId);
+    const recentConversations = currentSessionMemories.slice(-4).map(m => 
+      `User: ${m.userMessage}\nDr. Sage: ${m.therapistResponse}`
+    );
+
+    // Get patient profile summary
+    const patientProfile = longTermMemory ? [
+      longTermMemory.patientProfile.commonConcerns.length > 0 ? 
+        `Common concerns: ${longTermMemory.patientProfile.commonConcerns.join(', ')}` : '',
+      longTermMemory.patientProfile.personalDetails.length > 0 ? 
+        `Personal context: ${longTermMemory.patientProfile.personalDetails.slice(-2).join('; ')}` : '',
+      longTermMemory.copingStrategies.length > 0 ? 
+        `Previously discussed coping strategies: ${longTermMemory.copingStrategies.slice(-3).join('; ')}` : ''
+    ].filter(Boolean).join('\n') : '';
+
+    // Get key insights
+    const keyInsights = longTermMemory?.patientInsights.slice(-5) || [];
+
+    // Get emotional patterns
+    const emotionalPatterns = longTermMemory?.recurringThemes.slice(-3).join('; ') || '';
+
+    // Get previous session summaries
+    const previousSessions = sessions.slice(-2).map(s => 
+      `${s.date.toLocaleDateString()}: ${s.sessionSummary || s.keyTopics.join(', ')} (${s.emotionalTone})`
+    );
+
+    return {
+      recentConversations,
+      patientProfile,
+      keyInsights,
+      emotionalPatterns,
+      previousSessions
+    };
+  };
+
   const endCurrentSession = () => {
     const sessionMemories = shortTermMemory.filter(m => m.sessionId === currentSessionId);
     
     if (sessionMemories.length > 0) {
+      // Create session summary
+      const keyTopics = [...new Set(sessionMemories.map(m => m.memoryTag))].slice(0, 5);
+      const emotionalTone = getMostCommonEmotion(sessionMemories);
+      const sessionSummary = `Discussed ${keyTopics.join(', ').toLowerCase()}. Emotional tone: ${emotionalTone}`;
+
       const session: TherapySession = {
         id: currentSessionId,
         date: new Date(),
         duration: sessionMemories.length * 2, // Approximate minutes
-        keyTopics: [...new Set(sessionMemories.map(m => m.memoryTag))].slice(0, 5),
-        emotionalTone: getMostCommonEmotion(sessionMemories),
+        keyTopics,
+        emotionalTone,
         breakthroughs: sessionMemories
           .filter(m => m.userMessage.length > 100)
           .map(m => m.memoryTag)
           .slice(0, 3),
-        actionItems: []
+        actionItems: [],
+        sessionSummary,
+        messageCount: sessionMemories.length
       };
 
       setSessions(prev => [...prev, session]);
@@ -220,6 +315,7 @@ export const useMemorySystem = () => {
     currentSessionId,
     addToShortTermMemory,
     getConversationHistory,
+    getConversationContextForAPI,
     endCurrentSession,
     getTherapyNotes,
     analyzePatternsAndUpdateLongTerm

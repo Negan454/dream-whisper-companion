@@ -105,8 +105,9 @@ const IndexContent = () => {
   const { state, addSeeds, unlockBadge, triggerAffirmation, checkDailyReset } = useGamification();
   const { 
     addToShortTermMemory, 
-    getConversationHistory,
-    getTherapyNotes 
+    getConversationContextForAPI,
+    getTherapyNotes,
+    endCurrentSession
   } = useMemorySystem();
   
   // Check for daily reset on component mount
@@ -134,10 +135,8 @@ const IndexContent = () => {
   };
 
   // Function to call your backend API
-  const callTherapistAPI = async (userMessage: string): Promise<{ response: string; emotion: string; memory_tag: string }> => {
+  const callTherapistAPI = async (userMessage: string, conversationContext: any): Promise<{ response: string; emotion: string; memory_tag: string }> => {
     try {
-      const conversationHistory = getConversationHistory();
-      
       const response = await fetch('http://localhost:8000/chat', {
         method: 'POST',
         headers: {
@@ -145,7 +144,13 @@ const IndexContent = () => {
         },
         body: JSON.stringify({
           user_input: userMessage,
-          history: conversationHistory
+          history: conversationContext.recentConversations,
+          patient_context: {
+            profile: conversationContext.patientProfile,
+            key_insights: conversationContext.keyInsights,
+            emotional_patterns: conversationContext.emotionalPatterns,
+            previous_sessions: conversationContext.previousSessions
+          }
         }),
       });
 
@@ -203,8 +208,11 @@ const IndexContent = () => {
     setIsLoading(true);
     
     try {
-      // Call your backend API
-      const apiResponse = await callTherapistAPI(messageText);
+      // Get comprehensive conversation context
+      const conversationContext = getConversationContextForAPI();
+      
+      // Call your backend API with enhanced context
+      const apiResponse = await callTherapistAPI(messageText, conversationContext);
       
       // Determine emotion (use API response or fallback to local analysis)
       const emotion = apiResponse.emotion !== 'neutral' ? 
@@ -277,6 +285,12 @@ const IndexContent = () => {
     }, 3000);
   };
 
+  const handleEndSession = () => {
+    endCurrentSession();
+    setMessages(initialMessages); // Reset to welcome message
+    triggerAffirmation("Thank you for this meaningful conversation. Your insights are valuable.");
+  };
+
   return (
     <div className="min-h-screen w-full bg-gradient-radial from-teal-50 via-blue-50 to-purple-50 overflow-hidden">
       <Particles quantity={10} />
@@ -289,6 +303,14 @@ const IndexContent = () => {
           <p className="text-blue-700 max-w-xl mx-auto">
             A compassionate guide for emotional growth and self-discovery
           </p>
+          <div className="mt-4">
+            <button
+              onClick={handleEndSession}
+              className="px-4 py-2 bg-teal-500 text-white rounded-lg hover:bg-teal-600 transition-colors text-sm"
+            >
+              End Session & Start Fresh
+            </button>
+          </div>
         </header>
         
         <DisclaimerBanner />
